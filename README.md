@@ -61,7 +61,7 @@ server/  Express REST API
 ### 1. Clone the repo
 
 ```bash
-git clone https://github.com/YOUR_USERNAME/expense-tracker.git
+git clone https://github.com/DevSood12/expense-tracker.git
 cd expense-tracker
 ```
 
