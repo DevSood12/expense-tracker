@@ -4,6 +4,8 @@ import dotenv from "dotenv";
 import helmet from "helmet";
 import morgan from "morgan";
 import cookieParser from "cookie-parser";
+import path from "path";
+import { fileURLToPath } from "url";
 import connectDB from "./config/db.js";
 import errorMiddleware, { notFound } from "./middleware/errorMiddleware.js";
 import authRoutes from "./routes/authRoutes.js";
@@ -11,6 +13,8 @@ import transactionRoutes from "./routes/transactionRoutes.js";
 import dashboardRoutes from "./routes/dashboardRoutes.js";
 
 dotenv.config();
+
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -36,10 +40,22 @@ app.get("/api/health", (req, res) => {
   res.status(200).json({ status: "ok", message: "Server is running" });
 });
 
-// Routes
+// API routes
 app.use("/api/auth", authRoutes);
 app.use("/api/transactions", transactionRoutes);
 app.use("/api/dashboard", dashboardRoutes);
+
+// In production, serve the built React app from the same server
+if (process.env.NODE_ENV === "production") {
+  const clientDist = path.join(__dirname, "../client/dist");
+  app.use(express.static(clientDist));
+
+  // Any non-API GET request returns index.html so React Router handles the route
+  app.use((req, res, next) => {
+    if (req.method !== "GET" || req.path.startsWith("/api")) return next();
+    res.sendFile(path.join(clientDist, "index.html"));
+  });
+}
 
 app.use(notFound);
 app.use(errorMiddleware);
